@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<style>html{background:#141311}</style>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Velnora — Villa Aurea</title>
+<link rel="stylesheet" href="../css/velnora-shared.css">
+<link rel="apple-touch-icon" href="../assets/icon-180.png">
+<link rel="icon" href="../assets/favicon-32.png">
+<meta name="theme-color" content="#141311">
+<link rel="preconnect" href="https://api.open-meteo.com">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+<link rel="preconnect" href="https://a.basemaps.cartocdn.com" crossorigin>
+<style>
+
+  .hero-block{position:relative;height:64dvh;min-height:460px;max-height:680px;overflow:hidden;border-radius:0 0 18px 18px;flex-shrink:0;background:var(--ink) url(data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDABIMDRANCxIQDhAUExIVGywdGxgYGzYnKSAsQDlEQz85Pj1HUGZXR0thTT0+WXlaYWltcnNyRVV9hnxvhWZwcm7/2wBDARMUFBsXGzQdHTRuST5Jbm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm7/wAARCAAVACADASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwDGih3rmlNo2M4qSyk+XpxWiHQrjFavEVIu6JVKLRhtEQabsrVkiVmqpLEFNdixLa2OZ07Ms2yBU4FTOoC5oory5N856EUuUSMZHNQ3KDFFFa1G0ZpH/9k=) center/cover;transform:translateZ(0);isolation:isolate;}
+  .hero-photo{position:absolute;inset:-4%;width:108%;height:108%;object-fit:cover;object-position:center 58%;will-change:transform;transform:translateZ(0);backface-visibility:hidden;}
+  .hero-block .plate{position:absolute;inset:0;background:linear-gradient(180deg, rgba(10,9,8,0) 0%, rgba(10,9,8,0) 35%, rgba(10,9,8,.12) 52%, rgba(11,10,9,.32) 65%, rgba(12,11,10,.58) 76%, rgba(13,12,11,.82) 86%, var(--ink) 96%, var(--ink) 100%);}
+
+  .topbar{position:fixed;top:0;left:0;right:0;z-index:5;display:flex;justify-content:space-between;align-items:flex-start;padding:calc(env(safe-area-inset-top,0px) + 20px) var(--space-5) 0;}
+  @media (min-width:720px){
+    .topbar{left:50%;right:auto;margin-left:-240px;width:100%;max-width:480px;}
+  }
+  .monogram{width:27px;height:27px;opacity:.94;filter:drop-shadow(0 1px 3px rgba(0,0,0,.4));}
+
+  .weather-chip{display:flex;align-items:center;gap:6px;font-family:var(--font-display);font-size:12.5px;font-weight:500;color:var(--paper);background:rgba(20,19,17,.4);border:1px solid rgba(239,236,229,.14);border-radius:2px;padding:6px 12px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);}
+  .weather-chip svg{width:14px;height:14px;opacity:.85;}
+
+  .body-col{position:relative;z-index:1;background:var(--ink);padding:22px var(--space-5) calc(env(safe-area-inset-bottom,0px) + 40px);}
+
+  .phase-eyebrow{font-family:var(--font-display);font-size:10.5px;letter-spacing:.24em;text-transform:uppercase;color:var(--brass-light);margin:0 0 12px;font-weight:600;}
+  .phase-message{font-family:var(--font-editorial);font-weight:400;font-size:30px;line-height:1.25;color:var(--paper);margin:0 0 10px;}
+  .phase-submessage{font-family:var(--font-body);font-weight:300;font-size:14.5px;line-height:1.55;color:var(--stone-dim);margin:0 0 28px;max-width:320px;}
+
+  .primary-action{display:flex;align-items:center;gap:14px;padding:14px 15px;margin-bottom:var(--space-4);cursor:pointer;}
+  .primary-action .txt{flex:1;min-width:0;}
+  .primary-action .eb{font-family:var(--font-display);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--brass-light);margin-bottom:4px;}
+  .primary-action .val{font-family:var(--font-body);font-size:15.5px;font-weight:400;color:var(--paper);}
+
+  .quick-access{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;}
+  .qa-item{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;min-height:88px;padding:16px 6px;cursor:pointer;}
+  .qa-item .glass-icon{transition:transform var(--duration-micro) var(--ease-signature);}
+  .qa-item:active .glass-icon{transform:scale(.94);}
+  .qa-item .lbl{font-family:var(--font-body);font-size:11px;font-weight:400;color:var(--paper-2);text-align:center;line-height:1.25;}
+
+  .depart-row{display:flex;align-items:center;gap:14px;padding:13px 15px;margin-top:var(--space-4);cursor:pointer;}
+  .depart-row .txt{flex:1;min-width:0;}
+  .depart-row .eb{font-family:var(--font-display);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--stone-dim);margin-bottom:3px;}
+  .depart-row .val{font-family:var(--font-body);font-size:14px;font-weight:400;color:var(--paper-2);}
+  .depart-row .chev{width:16px;height:16px;flex-shrink:0;color:var(--stone-dim);}
+
+
+  .device{background:
+    radial-gradient(120% 70% at 50% -10%, #211c17 0%, var(--ink) 55%);
+  }
+  .access-note{font-family:var(--font-body);font-size:13px;font-weight:300;color:var(--stone-dim);padding:0 2px;margin-top:10px;line-height:1.6;}
+  .access-note b{color:var(--brass-light);font-weight:400;}
+  .proc-text{font-family:var(--font-body);font-size:14.5px;font-weight:300;line-height:1.65;color:var(--paper-2);padding:16px 16px 4px;}
+  .wifi-row{display:flex;align-items:center;gap:13px;padding:15px 16px;cursor:pointer;}
+  .wifi-row .txt{flex:1;min-width:0;}
+  .wifi-row .eb{font-family:var(--font-display);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--stone-dim);margin-bottom:4px;}
+  .wifi-row .val{font-family:var(--font-body);font-size:15px;font-weight:400;color:var(--paper);word-break:break-word;}
+  .wifi-row .copy-pill{margin-left:auto;}
+  .share-row{display:flex;align-items:center;gap:13px;padding:15px 16px;cursor:pointer;font-family:var(--font-body);font-size:14.5px;font-weight:400;color:var(--paper);}
+  .wifi-row + .wifi-row,.wifi-row + .share-row{border-top:1px solid rgba(239,236,229,.07);}
+  .wifi-row:active .copy-pill,.wifi-row.copied .copy-pill{color:var(--ink);background:var(--brass-light);border-color:var(--brass-light);}
+  .wifi-row:active,.share-row:active{transform:scale(.985);transition:transform 110ms var(--ease-signature);}
+  @media (hover:hover) and (pointer:fine){ .wifi-row:active,.share-row:active{transform:none;} }
+
+
+  .device{background:radial-gradient(120% 70% at 50% -10%, #211c17 0%, var(--ink) 55%);}
+  .time-row{display:flex;align-items:center;justify-content:space-between;padding:16px 16px;cursor:pointer;}
+  .glass-group .acc-item{border-top-color:rgba(239,236,229,.07);}
+  .time-lbl{font-family:var(--font-body);font-size:15px;font-weight:400;color:var(--paper);}
+  .time-val{font-family:var(--font-display);font-size:26px;font-weight:500;color:var(--paper);letter-spacing:.01em;}
+  .time-val.emph{color:var(--brass-light);}
+  .acc-chev-time{width:11px;height:11px;margin-left:12px;flex-shrink:0;transition:transform var(--duration-standard) var(--ease-signature);opacity:.6;}
+  .acc-item.open .acc-chev-time{transform:rotate(180deg);}
+  .late-note{display:flex;align-items:center;gap:10px;padding:14px 2px 2px;font-family:var(--font-body);font-size:12.5px;font-weight:300;color:var(--stone-dim);line-height:1.6;cursor:pointer;}
+  .late-note svg{width:15px;height:15px;flex-shrink:0;color:var(--brass-light);}
+  .stay-range{margin-top:6px;font-family:var(--font-body);font-size:13px;font-weight:300;color:var(--stone-dim);}
+  .stay-range:empty{display:none;}
+
+
+.contact-row{display:flex;align-items:center;gap:13px;padding:15px 16px;cursor:pointer;}
+.contact-row + .contact-row{border-top:1px solid rgba(239,236,229,.07);}
+.contact-row .txt{flex:1;min-width:0;}
+.contact-row .nm{font-family:var(--font-body);font-size:15px;font-weight:400;color:var(--paper);}
+.contact-row .av{font-family:var(--font-body);font-size:11.5px;font-weight:300;color:var(--stone-dim);margin-top:3px;}
+.contact-row .call{width:32px;height:32px;border-radius:50%;border:1px solid rgba(239,236,229,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background-color var(--duration-micro) var(--ease-signature), border-color var(--duration-micro) var(--ease-signature);}
+.contact-row .call svg{width:13px;height:13px;color:var(--paper);}
+.contact-row:active .call{background:var(--brass-light);border-color:var(--brass-light);}
+.contact-row:active .call svg{color:var(--ink);}
+.contact-row:active{transform:scale(.985);transition:transform 110ms var(--ease-signature);}
+@media (hover:hover) and (pointer:fine){ .contact-row:active{transform:none;} }
+.emergency-row{display:flex;align-items:center;gap:13px;padding:14px 16px;font-family:var(--font-body);font-size:14.5px;font-weight:400;color:var(--paper);cursor:pointer;}
+.emergency-row + .emergency-row{border-top:1px solid rgba(239,236,229,.07);}
+.emergency-row .txt{flex:1;min-width:0;}
+.emergency-row .num{font-family:var(--font-display);font-weight:500;color:var(--brass-light);font-variant-numeric:tabular-nums;}
+
+.cover{position:relative;height:340px;overflow:hidden;background:#221c17;}
+.cover img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;}
+.cover::after{content:"";position:absolute;left:0;right:0;bottom:0;height:40%;background:linear-gradient(180deg, rgba(20,19,17,0), var(--ink) 96%);pointer-events:none;}
+.narrative{font-family:var(--font-editorial);font-size:17px;font-weight:400;line-height:1.75;color:var(--paper-2);padding:26px var(--space-5) 4px;max-width:640px;margin:0 auto;}
+.location-row{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:14px 16px;max-width:640px;margin:16px auto 22px;}
+.location-row .li-left{display:flex;align-items:center;gap:12px;min-width:0;}
+.location-txt{font-family:var(--font-body);font-size:13px;font-weight:300;color:var(--stone-dim);}
+.location-txt b{color:var(--paper-2);font-weight:400;}
+.strong-photos{display:flex;gap:12px;overflow-x:auto;padding:0 var(--space-5) 40px;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none;max-width:640px;margin:0 auto;}
+.strong-photos::-webkit-scrollbar{display:none;}
+.strong-photo{min-width:64%;scroll-snap-align:start;flex-shrink:0;}
+.strong-photo .img-wrap{height:180px;border-radius:2px;}
+.strong-photo .cap{font-family:var(--font-display);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--stone-dim);margin-top:9px;}
+
+/* ---- Sélection de Stéphane : onglets ---- */
+.rec-tabs{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding:2px 2px 6px;margin-top:14px;}
+.rec-tabs::-webkit-scrollbar{display:none;}
+.rec-tab{flex-shrink:0;font-family:var(--font-display);font-size:11px;font-weight:600;letter-spacing:.04em;color:var(--stone-dim);padding:9px 15px;border:1px solid rgba(239,236,229,.13);border-radius:20px;cursor:pointer;white-space:nowrap;transition:color var(--duration-micro) var(--ease-signature),background-color var(--duration-micro) var(--ease-signature),border-color var(--duration-micro) var(--ease-signature);}
+.rec-tab.active{color:var(--ink);background:var(--brass-light);border-color:var(--brass-light);}
+
+/* ---- carte ---- */
+.rec-map-wrap{height:170px;border:1px solid rgba(239,236,229,.1);border-radius:18px;overflow:hidden;margin:20px 0 22px;filter:saturate(.7) brightness(.9);}
+#recMap{height:100%;width:100%;background:var(--ink-2);}
+.leaflet-control-attribution{background:rgba(20,19,17,.75) !important;color:var(--guide) !important;font-size:8.5px !important;}
+.leaflet-control-attribution a{color:var(--stone-dim) !important;}
+.vln-pin{width:10px;height:10px;border-radius:50%;background:var(--brass-light);border:2px solid var(--ink);box-shadow:0 0 0 2px rgba(199,173,130,.3);}
+
+/* ---- carte lieu (liquid glass) ---- */
+.p-card{padding:20px 18px;margin-bottom:12px;}
+.p-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;}
+.p-name{font-family:var(--font-editorial);font-size:17px;font-weight:400;color:var(--paper);line-height:1.3;}
+.p-tag{display:inline-block;font-family:var(--font-display);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--brass-light);margin-top:6px;}
+
+.rating{display:flex;align-items:center;gap:6px;flex-shrink:0;padding-top:2px;}
+.stars{position:relative;display:inline-block;font-size:11px;letter-spacing:1.5px;line-height:1;}
+.stars .stars-bg{color:rgba(239,236,229,.14);}
+.stars .stars-fg{position:absolute;top:0;left:0;overflow:hidden;width:0;white-space:nowrap;color:var(--brass-light);}
+.rating-num{font-family:var(--font-display);font-size:10.5px;color:var(--stone-dim);}
+
+.p-desc{font-family:var(--font-body);font-size:13px;font-weight:300;color:var(--stone-dim);line-height:1.65;margin-top:12px;max-width:520px;}
+
+.p-actions{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap;}
+.p-action{display:inline-flex;align-items:center;gap:6px;font-family:var(--font-display);font-size:9.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--stone-dim);border:1px solid rgba(239,236,229,.14);border-radius:20px;padding:9px 13px;cursor:pointer;text-decoration:none;transition:color var(--duration-micro) var(--ease-signature), background-color var(--duration-micro) var(--ease-signature), border-color var(--duration-micro) var(--ease-signature);}
+.p-action svg{width:11px;height:11px;flex-shrink:0;}
+.p-action:active{color:var(--ink);background:var(--brass-light);border-color:var(--brass-light);}
+
+.rec-empty{display:none;padding:44px 4px;text-align:center;font-family:var(--font-body);font-size:13px;font-weight:300;color:var(--stone-dim);}
+
+/* ================= Expérience fusionnée — nav d'ancrage + sections ================= */
+.exp-nav{position:sticky;top:calc(env(safe-area-inset-top,0px) + 63px);z-index:6;background:rgba(20,19,17,.78);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid rgba(239,236,229,.08);}
+.exp-nav-inner{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding:12px var(--space-5);}
+.exp-nav-inner::-webkit-scrollbar{display:none;}
+@media (min-width:720px){ .exp-nav-inner{max-width:480px;margin:0 auto;} }
+.exp-pill{flex-shrink:0;font-family:var(--font-display);font-size:10.5px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--stone-dim);padding:9px 14px;border:1px solid rgba(239,236,229,.13);border-radius:20px;cursor:pointer;white-space:nowrap;transition:color 140ms ease,background-color 140ms ease,border-color 140ms ease;}
+.exp-pill.active{color:var(--ink);background:var(--brass-light);border-color:var(--brass-light);}
+
+.vln-section{scroll-margin-top:calc(env(safe-area-inset-top,0px) + 116px);}
+.vln-section .page-head{padding-top:40px;}
+.vln-section + .vln-section{border-top:1px solid var(--hair);}
+
+</style>
+</head>
+<body>
+
+<div class="device">
+  <div class="scroll-area" id="scroll">
+
+    <section class="vln-section" id="sec-accueil">
+      <div class="hero-block">
+<img alt="Vue extérieure de la Villa Aurea, Presqu'île de Giens" class="hero-photo" decoding="async" fetchpriority="high" src="../assets/images/hero-exterieur.jpg"/>
+<div class="plate"></div>
+<div class="topbar">
+<div class="monogram">
+<svg class="mono-svg" fill="none" stroke="#efece5" stroke-linecap="round" stroke-linejoin="round" stroke-width="4" viewbox="0 0 100 100">
+<rect height="94" rx="16" ry="16" width="90" x="5" y="3"></rect>
+<path d="M27,15 L50,82 L73,15"></path>
+</svg>
+</div>
+<div class="weather-chip enter" id="weatherChip">
+<svg fill="none" stroke="currentColor" stroke-width="1.6" viewbox="0 0 24 24"><circle cx="12" cy="12" r="4.2"></circle><path d="M12 3v2M12 19v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M3 12h2M19 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4"></path></svg>
+<span class="wc-temp">26°</span>
+</div>
+</div>
+</div><div class="body-col">
+<div class="phase-eyebrow enter">Velnora · Villa Aurea</div>
+<div class="phase-message enter enter-1" id="phaseMessage" style="visibility:hidden">Bienvenue.</div>
+<div class="phase-submessage enter enter-2" id="phaseSubmessage" style="visibility:hidden">La villa est à vous pour la durée de votre séjour.</div>
+<div class="primary-action glass-card enter enter-3" onclick="scrollToSection('sec-wifi')">
+<div class="glass-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><circle cx="12" cy="17.2" fill="currentColor" r="1.1" stroke="none"></circle><path d="M7.8 13.6a6 6 0 0 1 8.4 0"></path><path d="M4.6 10a11 11 0 0 1 14.8 0"></path></svg></div>
+<div class="txt"><div class="eb">Wi-Fi</div><div class="val">Villa-Aurea · Aurea2026</div></div>
+</div>
+<div class="quick-access enter enter-4">
+<div class="qa-item glass-card" onclick="scrollToSection('sec-checkin')">
+<div class="glass-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><rect height="16" rx="2" width="16" x="4" y="5"></rect><path d="M4 10h16M9 3v4M15 3v4"></path></svg></div>
+<div class="lbl">Check-in /<br/>Check-out</div>
+</div>
+<div class="qa-item glass-card" onclick="scrollToSection('sec-conciergerie')">
+<div class="glass-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><circle cx="12" cy="8" r="4"></circle><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"></path></svg></div>
+<div class="lbl">Votre<br/>Conciergerie</div>
+</div>
+<div class="qa-item glass-card" onclick="scrollToSection('sec-villa')">
+<div class="glass-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><path d="M4 11 12 4l8 7"></path><path d="M6 10v10h12V10"></path></svg></div>
+<div class="lbl">La<br/>Villa</div>
+</div>
+<div class="qa-item glass-card" onclick="scrollToSection('sec-guide')">
+<div class="glass-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><rect height="18" rx="2" width="14" x="5" y="3"></rect><path d="M9 8h6M9 12h6M9 16h3"></path></svg></div>
+<div class="lbl">Guide de<br/>la Villa</div>
+</div>
+<div class="qa-item glass-card" onclick="scrollToSection('sec-recommandations')">
+<div class="glass-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><circle cx="12" cy="9" r="4"></circle><path d="M9.2 12.4 7 20l5-2.6 5 2.6-2.2-7.6"></path></svg></div>
+<div class="lbl">Sélection<br/>Stéphane</div>
+</div>
+<div class="qa-item glass-card" onclick="scrollToSection('sec-extras')">
+<div class="glass-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><path d="M12 4v4M12 16v4M4 12h4M16 12h4M6.3 6.3l2.4 2.4M15.3 15.3l2.4 2.4M17.7 6.3l-2.4 2.4M8.7 15.3l-2.4 2.4"></path></svg></div>
+<div class="lbl">Extras &amp;<br/>Services</div>
+</div>
+</div>
+<div class="depart-row glass-card enter enter-5" onclick="scrollToSection('sec-depart')">
+<div class="glass-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><path d="M9 4H5v16h4M9 12h11M16 8l4 4-4 4"></path></svg></div>
+<div class="txt"><div class="eb">Avant de partir</div><div class="val">Consulter les consignes de départ</div></div>
+<svg class="chev" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><path d="M9 5l7 7-7 7"></path></svg>
+</div>
+</div>
+    </section>
+
+    <nav class="exp-nav" id="expNav">
+      <div class="exp-nav-inner" id="expNavInner">
+        <div class="exp-pill active" data-target="sec-accueil" onclick="scrollToSection('sec-accueil')">Accueil</div>
+<div class="exp-pill" data-target="sec-wifi" onclick="scrollToSection('sec-wifi')">Wi-Fi & Accès</div>
+<div class="exp-pill" data-target="sec-checkin" onclick="scrollToSection('sec-checkin')">Check-in / out</div>
+<div class="exp-pill" data-target="sec-conciergerie" onclick="scrollToSection('sec-conciergerie')">Conciergerie</div>
+<div class="exp-pill" data-target="sec-villa" onclick="scrollToSection('sec-villa')">La Villa</div>
+<div class="exp-pill" data-target="sec-guide" onclick="scrollToSection('sec-guide')">Guide de la Villa</div>
+<div class="exp-pill" data-target="sec-recommandations" onclick="scrollToSection('sec-recommandations')">Sélection Stéphane</div>
+      </div>
+    </nav>
+
+    <section class="vln-section" id="sec-wifi">
+      <div class="page-head">
+<div class="page-col">
+<div class="screen-eyebrow enter">Velnora · Villa Aurea</div>
+<h1 class="screen-title enter enter-1">Wi-Fi &amp; Accès privé</h1>
+<div class="glass-group-label enter enter-2">Votre accès privé</div>
+<div class="glass-group enter enter-2">
+<div class="proc-text">Stéphane ou un membre de la Conciergerie Aurea vous accueille en personne et vous remet les clés à votre arrivée. Pour vos allées et venues pendant le séjour, le portail piéton s'ouvre avec le digicode ci-dessous — refermez-le derrière vous, il se verrouille automatiquement.</div>
+<div class="wifi-row" onclick="copyValue(this)">
+<div class="glass-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><rect height="10" rx="2" width="16" x="4" y="10"></rect><path d="M8 10V7a4 4 0 0 1 8 0v3"></path></svg></div>
+<div class="txt"><div class="eb">Code de la porte d'entrée</div><div class="val">2609</div></div>
+<div class="copy-pill">Copier</div>
+</div>
+</div>
+<div class="access-note enter enter-3">Accueil personnalisé à partir de <b>16h00</b>, avec possibilité d'arrivée anticipée sur demande — Stéphane vous contacte la veille pour ajuster l'heure et vous indiquer les éventuelles conditions de circulation en haute saison.</div>
+<div class="glass-group-label enter enter-3">Réseau</div>
+<div class="glass-group enter enter-3">
+<div class="wifi-row" onclick="copyValue(this)">
+<div class="glass-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><circle cx="12" cy="17.2" fill="currentColor" r="1.1" stroke="none"></circle><path d="M7.8 13.6a6 6 0 0 1 8.4 0"></path><path d="M4.6 10a11 11 0 0 1 14.8 0"></path></svg></div>
+<div class="txt"><div class="eb">Nom du réseau</div><div class="val">Villa-Aurea</div></div>
+<div class="copy-pill">Copier</div>
+</div>
+<div class="wifi-row" onclick="copyValue(this)">
+<div class="glass-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><rect height="9" rx="2" width="14" x="5" y="10"></rect><path d="M8 10V7a4 4 0 0 1 8 0v3"></path></svg></div>
+<div class="txt"><div class="eb">Mot de passe</div><div class="val">Aurea2026</div></div>
+<div class="copy-pill">Copier</div>
+</div>
+<div class="share-row" onclick="shareWifi(this, 'Villa-Aurea', 'Aurea2026')">
+<div class="glass-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><circle cx="18" cy="5" r="2.6"></circle><circle cx="6" cy="12" r="2.6"></circle><circle cx="18" cy="19" r="2.6"></circle><path d="M8.3 10.6l7.4-4.2M8.3 13.4l7.4 4.2"></path></svg></div>
+            Partager le Wi-Fi
+          </div>
+</div>
+<div class="access-note enter enter-3">Connexion haut débit dans toute la villa, y compris sur la terrasse et au bord de la piscine.</div>
+</div>
+</div>
+    </section>
+
+    <section class="vln-section" id="sec-checkin">
+      <div class="page-head">
+<div class="page-col">
+<div class="screen-eyebrow enter">Velnora · Villa Aurea</div>
+<h1 class="screen-title enter enter-1">Check-in / Check-out</h1>
+<div class="stay-range enter enter-1" id="stayRange"></div>
+<div class="enter enter-2" style="margin-top:10px;">
+<div class="glass-group">
+<div class="acc-item">
+<div class="time-row" onclick="toggleAccordion(this)">
+<span style="display:flex;align-items:center;gap:13px;">
+<span class="glass-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><circle cx="7.5" cy="15.5" r="3.5"></circle><path d="M10 13 19 4M16 7l2.5 2.5M13.2 9.8l2 2"></path></svg></span>
+<span class="time-lbl">Arrivée</span>
+</span>
+<span style="display:flex;align-items:baseline;"><span class="time-val">16:00</span><svg class="acc-chev-time" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><path d="M6 9l6 6 6-6"></path></svg></span>
+</div>
+<div class="acc-body"><div class="acc-body-in" style="padding-left:63px;">Stéphane ou un membre de son équipe vous attend sur place pour vous remettre les clés en main propre et vous faire faire un tour rapide de la villa : tablette Tydom, piscine, sauna et petites habitudes de la maison. Comptez quinze minutes, dans la bonne humeur.</div></div>
+</div>
+<div class="acc-item">
+<div class="time-row" onclick="toggleAccordion(this)">
+<span style="display:flex;align-items:center;gap:13px;">
+<span class="glass-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><path d="M9 21V3h9v18M9 21H4M9 3H4v18"></path><circle cx="13" cy="12.5" fill="currentColor" r="1" stroke="none"></circle></svg></span>
+<span class="time-lbl">Départ</span>
+</span>
+<span style="display:flex;align-items:baseline;"><span class="time-val emph">10:00</span><svg class="acc-chev-time" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><path d="M6 9l6 6 6-6"></path></svg></span>
+</div>
+<div class="acc-body"><div class="acc-body-in" style="padding-left:63px;">Le ménage de fin de séjour est déjà pris en charge — inutile de tout ranger. Laissez simplement les clés sur la console de l'entrée et refermez la porte à clé ; si Stéphane est disponible, il passe volontiers vous saluer avant votre départ.</div></div>
+</div>
+</div>
+</div>
+<div class="late-note enter enter-3" onclick="scrollToSection('sec-conciergerie')">
+<svg fill="none" stroke="currentColor" stroke-width="1.8" viewbox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>
+          Un départ plus tardif est possible — demandez à la conciergerie.
+        </div>
+</div>
+</div>
+    </section>
+
+    <section class="vln-section" id="sec-conciergerie">
+      <div class="page-head">
+<div class="page-col">
+<div class="screen-eyebrow enter">Velnora · Villa Aurea</div>
+<h1 class="screen-title enter enter-1">Conciergerie</h1>
+<div class="glass-group-label enter enter-2">Votre conciergerie</div>
+<div class="glass-group enter enter-2">
+<a class="contact-row" href="tel:+33450551237" style="text-decoration:none;">
+<div class="glass-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.68 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.32 1.85.55 2.81.68A2 2 0 0 1 22 16.92z"></path></svg></div>
+<div class="txt"><div class="nm">Conciergerie Aurea</div></div>
+<div class="call"><svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.68 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.32 1.85.55 2.81.68A2 2 0 0 1 22 16.92z"></path></svg></div>
+</a>
+<a class="contact-row" href="tel:+33647821590" style="text-decoration:none;">
+<div class="glass-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><circle cx="12" cy="8" r="4"></circle><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"></path></svg></div>
+<div class="txt"><div class="nm">Stéphane</div><div class="av">Disponible en journée</div></div>
+<div class="call"><svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.68 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.32 1.85.55 2.81.68A2 2 0 0 1 22 16.92z"></path></svg></div>
+</a>
+</div>
+<div class="glass-group-label enter enter-4">Numéros d'urgence</div>
+<div class="glass-group enter enter-4">
+<a class="emergency-row" href="tel:112" style="text-decoration:none;">
+<div class="glass-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg></div>
+<div class="txt">Urgence européenne</div><span class="num">112</span>
+</a>
+<a class="emergency-row" href="tel:15" style="text-decoration:none;">
+<div class="glass-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><path d="M20 8.5V6a2 2 0 0 0-2-2H9L6 7v11a2 2 0 0 0 2 2h3M14 14l3 3 5-6"></path></svg></div>
+<div class="txt">SAMU</div><span class="num">15</span>
+</a>
+<a class="emergency-row" href="tel:17" style="text-decoration:none;">
+<div class="glass-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3z"></path></svg></div>
+<div class="txt">Police</div><span class="num">17</span>
+</a>
+<a class="emergency-row" href="tel:18" style="text-decoration:none;">
+<div class="glass-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><path d="M12 21c3.3 0 6-2.4 6-6 0-3-2-5-3-8-.6 2-1.8 3-3 2 0-2-1-4-2.5-5C10 6 9 8 9 10c-1.6 1-3 3-3 5 0 3.6 2.7 6 6 6z"></path></svg></div>
+<div class="txt">Pompiers</div><span class="num">18</span>
+</a>
+</div>
+</div>
+</div>
+    </section>
+
+    <section class="vln-section" id="sec-villa">
+      <div class="cover">
+        <img alt="La Villa Aurea et sa piscine à l'heure bleue" decoding="async" fetchpriority="low" loading="lazy" src="../assets/images/hero-exterieur.jpg"/>
+      </div>
+      <div class="page-col">
+        <div class="narrative enter">Perchée face à l'horizon, la Villa Aurea ouvre chacune de ses pièces sur la mer. Un lieu pensé pour les journées longues au bord de l'eau et les soirées qui s'étirent sous la pergola, entre pierre claire et lumière du soir.</div>
+        <div class="location-row glass-group enter enter-1">
+          <div class="li-left">
+            <span class="glass-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><path d="M12 21s7-6.5 7-12a7 7 0 1 0-14 0c0 5.5 7 12 7 12z"></path><circle cx="12" cy="9" r="2.4"></circle></svg></span>
+            <div class="location-txt">Hyères, <b>France</b></div>
+          </div>
+          <a class="vln-btn vln-btn-ghost" href="https://www.google.com/maps/search/?api=1&amp;query=43.0388%2C6.1305" onclick="event.preventDefault(); openInMaps(43.0388, 6.1305, 'Villa Aurea, Hyères');">Voir sur la carte</a>
+        </div>
+        <div class="strong-photos enter enter-2">
+          <div class="strong-photo">
+            <div class="img-wrap"><img alt="Vue aérienne de la piscine et de la villa au crépuscule" class="img-fill" decoding="async" loading="lazy" src="../assets/images/g04-piscine.jpg"/></div>
+            <div class="cap">Piscine</div>
+          </div>
+          <div class="strong-photo">
+            <div class="img-wrap"><img alt="Terrasse couverte et salle à manger extérieure vues d'en haut" class="img-fill" decoding="async" loading="lazy" src="../assets/images/g03-terrasse.jpg"/></div>
+            <div class="cap">Terrasse</div>
+          </div>
+          <div class="strong-photo">
+            <div class="img-wrap"><img alt="Vue sur la mer et les îles depuis la Villa Aurea" class="img-fill" decoding="async" loading="lazy" src="../assets/images/g02-vue-mer.jpg"/></div>
+            <div class="cap">Vue mer</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="vln-section" id="sec-guide">
+      <div class="page-head">
+<div class="page-col">
+<div class="screen-eyebrow enter">Velnora · Villa Aurea</div>
+<h1 class="screen-title enter enter-1">Guide de la Villa</h1>
+<div class="enter enter-2" style="margin-top:6px;">
+<div class="glass-group-label">À l'intérieur</div>
+<div class="glass-group">
+<div class="acc-item">
+<div class="glass-row" onclick="toggleAccordion(this)">
+<div class="glass-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><rect height="18" rx="2" width="14" x="5" y="3"></rect><path d="M9 7h6M9 11h6M9 15h3"></path></svg></div>
+<div class="gr-txt"><div class="gr-ttl">Tydom &amp; éclairages</div><div class="gr-sub">Jardin, piscine, cuisine</div></div>
+<svg class="glass-chev" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><path d="M6 9l6 6 6-6"></path></svg>
+</div>
+<div class="acc-body"><div class="acc-body-in">La tablette murale de l'entrée pilote une partie des éclairages — jardin, piscine, porche, rampe du garage — ainsi que quelques points lumineux de la cuisine. Le reste de la villa s'allume simplement à l'interrupteur, pièce par pièce.</div></div>
+</div>
+<div class="acc-item">
+<div class="glass-row" onclick="toggleAccordion(this)">
+<div class="glass-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><path d="M4 3v10a4 4 0 0 0 4 4v4M8 3v7M12 3v7M16 3v18"></path></svg></div>
+<div class="gr-txt"><div class="gr-ttl">Cuisine &amp; lave-vaisselle</div><div class="gr-sub">Équipée, cycle Éco recommandé</div></div>
+<svg class="glass-chev" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><path d="M6 9l6 6 6-6"></path></svg>
+</div>
+<div class="acc-body"><div class="acc-body-in">La cuisine est entièrement équipée, de la cafetière expresso au grille-pain. Le lave-vaisselle se trouve sous le plan de travail central ; le cycle Éco suffit largement pour un usage quotidien et reste le plus silencieux en soirée.</div></div>
+</div>
+</div>
+<div class="glass-group-label">En extérieur</div>
+<div class="glass-group">
+<div class="acc-item">
+<div class="glass-row" onclick="toggleAccordion(this)">
+<div class="glass-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><path d="M3 16c2-2 4-2 6 0s4 2 6 0 4-2 6 0M3 20c2-2 4-2 6 0s4 2 6 0 4-2 6 0"></path><circle cx="12" cy="7" r="3"></circle></svg></div>
+<div class="gr-txt"><div class="gr-ttl">Piscine chauffée</div><div class="gr-sub">10 × 4 m, jusqu'à 28°C</div></div>
+<svg class="glass-chev" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><path d="M6 9l6 6 6-6"></path></svg>
+</div>
+<div class="acc-body"><div class="acc-body-in">La piscine (10 × 4 m) est chauffée à 28°C de mai à septembre, parfois dès fin avril si la météo le permet. La pompe à chaleur suit la température extérieure : par une journée plus fraîche, l'eau reste en dessous de cet objectif — c'est normal, pas un défaut. Le local technique, au niveau -1, est entretenu par notre équipe pendant votre séjour.</div></div>
+</div>
+<div class="acc-item">
+<div class="glass-row" onclick="toggleAccordion(this)">
+<div class="glass-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><path d="M12 2s-5 5.5-5 10a5 5 0 0 0 10 0c0-2-1-3.5-2-5 .3 1 .3 2-.2 2.5C13.6 8 12 6 12 2z"></path></svg></div>
+<div class="gr-txt"><div class="gr-ttl">Sauna privé</div><div class="gr-sub">Niveau -1, à côté de l'espace sport</div></div>
+<svg class="glass-chev" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><path d="M6 9l6 6 6-6"></path></svg>
+</div>
+<div class="acc-body"><div class="acc-body-in">Le sauna se trouve au niveau -1, à côté de l'espace sport. Comptez quinze à vingt minutes par séance, en vous hydratant bien avant et après. Par précaution, évitez de l'utiliser seul en cas de doute sur votre condition physique.</div></div>
+</div>
+<div class="acc-item">
+<div class="glass-row" onclick="toggleAccordion(this)">
+<div class="glass-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><circle cx="12" cy="14" r="7"></circle><path d="M7 14h10M9 11h6M12 3v4"></path></svg></div>
+<div class="gr-txt"><div class="gr-ttl">Barbecue Bastard</div><div class="gr-sub">Charbon, sur la terrasse</div></div>
+<svg class="glass-chev" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><path d="M6 9l6 6 6-6"></path></svg>
+</div>
+<div class="acc-body"><div class="acc-body-in">Notre barbecue Bastard, sur la terrasse, fonctionne au charbon — un sac plein et des brochettes vous attendent à côté. Laissez la braise monter en température une bonne vingtaine de minutes avant de cuisiner, et laissez-le refroidir complètement avant de le refermer.</div></div>
+</div>
+</div>
+<div class="glass-group-label">Pratique</div>
+<div class="glass-group">
+<div class="acc-item">
+<div class="glass-row" onclick="toggleAccordion(this)">
+<div class="glass-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><path d="M4 16v-3.5L6.5 8h11L20 12.5V16"></path><path d="M4 16h16M8 12h8"></path><circle cx="7.5" cy="16.5" r="1.6"></circle><circle cx="16.5" cy="16.5" r="1.6"></circle></svg></div>
+<div class="gr-txt"><div class="gr-ttl">Stationnement &amp; recharge électrique</div><div class="gr-sub">Privé, borne Type 2</div></div>
+<svg class="glass-chev" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><path d="M6 9l6 6 6-6"></path></svg>
+</div>
+<div class="acc-body"><div class="acc-body-in">Le stationnement est gratuit et privé, sur l'allée devant la villa. Une borne de recharge (prise Type 2) est installée près du garage, libre d'utilisation pendant tout votre séjour.</div></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+    </section>
+
+    <section class="vln-section" id="sec-recommandations">
+      <div class="page-head">
+<div class="page-col">
+<div class="screen-eyebrow enter">Velnora · Villa Aurea</div>
+<h1 class="screen-title enter enter-1">Sélection de Stéphane</h1>
+<div class="rec-tabs enter enter-2" id="recTabs">
+<div class="rec-tab active" data-cat="all">Tous</div>
+<div class="rec-tab" data-cat="restaurants">Restaurants</div>
+<div class="rec-tab" data-cat="plages">Plages</div>
+<div class="rec-tab" data-cat="activites">Activités</div>
+<div class="rec-tab" data-cat="exclusives">Expériences exclusives</div>
+</div>
+<div class="rec-map-wrap enter enter-2"><div id="recMap"></div></div>
+<div class="enter enter-3" id="recList">
+
+<div class="p-card glass-group" data-cat="restaurants" data-lat="43.0450827" data-lon="6.1472747" data-name="La Table du Lodge, Giens">
+<div class="p-head">
+<div><div class="p-name">La Table du Lodge</div><div class="p-tag">Restaurant gastronomique · Giens</div></div>
+<div class="rating"><span class="stars" data-rating="4.7"><span class="stars-bg">★★★★★</span><span class="stars-fg">★★★★★</span></span><span class="rating-num">4.7</span></div>
+</div>
+<div class="p-desc">Cuisine de haute volée signée chef Pascal, entre influences japonaises et tradition française — la table la plus raffinée de la presqu'île, à deux pas de la villa.</div>
+<div class="p-actions">
+<a class="p-action" href="tel:+33494413839"><svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.68 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.32 1.85.55 2.81.68A2 2 0 0 1 22 16.92z"></path></svg>04 94 41 38 39</a>
+<a class="p-action" href="https://www.lelodgedesilesdor.com/" rel="noopener" target="_blank"><svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><path d="M3 12h18M12 3a14 14 0 0 1 0 18 14 14 0 0 1 0-18z"></path></svg>Site web</a>
+<div class="p-action" onclick="openInMaps(43.0450827,6.1472747,'La Table du Lodge, Giens')"><svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><path d="M12 21s7-6.5 7-12a7 7 0 1 0-14 0c0 5.5 7 12 7 12z"></path><circle cx="12" cy="9" r="2.4"></circle></svg>Itinéraire</div>
+</div>
+</div>
+
+<div class="p-card glass-group" data-cat="restaurants" data-lat="43.1261266" data-lon="6.0992074" data-name="Restaurant La Colombe, Hyères">
+<div class="p-head">
+<div><div class="p-name">La Colombe</div><div class="p-tag">Restaurant étoilé · Hyères</div></div>
+<div class="rating"><span class="stars" data-rating="4.4"><span class="stars-bg">★★★★★</span><span class="stars-fg">★★★★★</span></span><span class="rating-num">4.4</span></div>
+</div>
+<div class="p-desc">Cuisine gastronomique inventive distinguée par le Guide Michelin, cadre élégant et service irréprochable — réservation recommandée plusieurs jours à l'avance.</div>
+<div class="p-actions">
+<a class="p-action" href="tel:+33494353516"><svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.68 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.32 1.85.55 2.81.68A2 2 0 0 1 22 16.92z"></path></svg>04 94 35 35 16</a>
+<a class="p-action" href="https://restaurantlacolombe.com/" rel="noopener" target="_blank"><svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><path d="M3 12h18M12 3a14 14 0 0 1 0 18 14 14 0 0 1 0-18z"></path></svg>Site web</a>
+<div class="p-action" onclick="openInMaps(43.1261266,6.0992074,'Restaurant La Colombe, Hyères')"><svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><path d="M12 21s7-6.5 7-12a7 7 0 1 0-14 0c0 5.5 7 12 7 12z"></path><circle cx="12" cy="9" r="2.4"></circle></svg>Itinéraire</div>
+</div>
+</div>
+
+<div class="p-card glass-group" data-cat="restaurants" data-lat="43.0384060" data-lon="6.1307560" data-name="L'Envie, par Cédric Gola, Giens">
+<div class="p-head">
+<div><div class="p-name">L'Envie — Cédric Gola</div><div class="p-tag">Restaurant · Village de Giens</div></div>
+<div class="rating"><span class="stars" data-rating="4.7"><span class="stars-bg">★★★★★</span><span class="stars-fg">★★★★★</span></span><span class="rating-num">4.7</span></div>
+</div>
+<div class="p-desc">Table confidentielle sur la place du village, menu dégustation en cinq services — une adresse d'initiés, élégante et discrète.</div>
+<div class="p-actions">
+<a class="p-action" href="tel:+33494485035"><svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.68 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.32 1.85.55 2.81.68A2 2 0 0 1 22 16.92z"></path></svg>04 94 48 50 35</a>
+<a class="p-action" href="https://www.restaurant-cedric-gola.com/" rel="noopener" target="_blank"><svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><path d="M3 12h18M12 3a14 14 0 0 1 0 18 14 14 0 0 1 0-18z"></path></svg>Site web</a>
+<div class="p-action" onclick="openInMaps(43.0384060,6.1307560,'L\'Envie, Giens')"><svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><path d="M12 21s7-6.5 7-12a7 7 0 1 0-14 0c0 5.5 7 12 7 12z"></path><circle cx="12" cy="9" r="2.4"></circle></svg>Itinéraire</div>
+</div>
+</div>
+
+<div class="p-card glass-group" data-cat="plages" data-lat="43.0673770" data-lon="6.1474243" data-name="Le Hameau des Pesquiers, Giens">
+<div class="p-head">
+<div><div class="p-name">Le Hameau des Pesquiers</div><div class="p-tag">Plage privée &amp; spa 5★ · Giens</div></div>
+<div class="rating"><span class="stars" data-rating="4.4"><span class="stars-bg">★★★★★</span><span class="stars-fg">★★★★★</span></span><span class="rating-num">4.4</span></div>
+</div>
+<div class="p-desc">Ecolodge 5 étoiles posé directement sur le sable, spa d'exception et accès plage privée — le flamant rose s'invite parfois en fin de journée.</div>
+<div class="p-actions">
+<a class="p-action" href="tel:+33494317777"><svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.68 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.32 1.85.55 2.81.68A2 2 0 0 1 22 16.92z"></path></svg>04 94 31 77 77</a>
+<a class="p-action" href="https://lespesquiers.com/" rel="noopener" target="_blank"><svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><path d="M3 12h18M12 3a14 14 0 0 1 0 18 14 14 0 0 1 0-18z"></path></svg>Site web</a>
+<div class="p-action" onclick="openInMaps(43.0673770,6.1474243,'Le Hameau des Pesquiers, Giens')"><svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><path d="M12 21s7-6.5 7-12a7 7 0 1 0-14 0c0 5.5 7 12 7 12z"></path><circle cx="12" cy="9" r="2.4"></circle></svg>Itinéraire</div>
+</div>
+</div>
+
+<div class="p-card glass-group" data-cat="plages" data-lat="43.0113119" data-lon="6.2330065" data-name="Plage Notre-Dame, Porquerolles">
+<div class="p-head">
+<div><div class="p-name">Plage Notre-Dame</div><div class="p-tag">Plage · Porquerolles</div></div>
+<div class="rating"><span class="stars" data-rating="4.9"><span class="stars-bg">★★★★★</span><span class="stars-fg">★★★★★</span></span><span class="rating-num">4.9</span></div>
+</div>
+<div class="p-desc">Élue plus belle plage d'Europe — sable fin et eaux turquoise, à l'écart de l'agitation. Accessible en bateau depuis la Tour Fondue.</div>
+<div class="p-actions">
+<div class="p-action" onclick="openInMaps(43.0113119,6.2330065,'Plage Notre-Dame, Porquerolles')"><svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><path d="M12 21s7-6.5 7-12a7 7 0 1 0-14 0c0 5.5 7 12 7 12z"></path><circle cx="12" cy="9" r="2.4"></circle></svg>Itinéraire</div>
+</div>
+</div>
+
+<div class="p-card glass-group" data-cat="activites" data-lat="43.0273850" data-lon="6.1548355" data-name="Tour Fondue">
+<div class="p-head">
+<div><div class="p-name">Îles d'Or depuis la Tour Fondue</div><div class="p-tag">Activité</div></div>
+<div class="rating"><span class="stars" data-rating="4.8"><span class="stars-bg">★★★★★</span><span class="stars-fg">★★★★★</span></span><span class="rating-num">4.8</span></div>
+</div>
+<div class="p-desc">Embarcadère vers Porquerolles et Port-Cros — randonnée, criques secrètes et pique-nique à l'ombre des pins, à vingt minutes de bateau.</div>
+<div class="p-actions">
+<a class="p-action" href="tel:+33494582181"><svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.68 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.32 1.85.55 2.81.68A2 2 0 0 1 22 16.92z"></path></svg>04 94 58 21 81</a>
+<a class="p-action" href="https://www.tlv-tvm.com/" rel="noopener" target="_blank"><svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><path d="M3 12h18M12 3a14 14 0 0 1 0 18 14 14 0 0 1 0-18z"></path></svg>Site web</a>
+<div class="p-action" onclick="openInMaps(43.0273850,6.1548355,'Tour Fondue, Hyères')"><svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><path d="M12 21s7-6.5 7-12a7 7 0 1 0-14 0c0 5.5 7 12 7 12z"></path><circle cx="12" cy="9" r="2.4"></circle></svg>Itinéraire</div>
+</div>
+</div>
+
+<div class="p-card glass-group" data-cat="activites" data-lat="43.1019597" data-lon="6.1727583" data-name="Private Boat 83, Hyères">
+<div class="p-head">
+<div><div class="p-name">Sortie en bateau privé</div><div class="p-tag">Activité · Skipper privé</div></div>
+<div class="rating"><span class="stars" data-rating="5.0"><span class="stars-bg">★★★★★</span><span class="stars-fg">★★★★★</span></span><span class="rating-num">5.0</span></div>
+</div>
+<div class="p-desc">Journée en mer avec skipper privé — criques confidentielles autour des îles d'Or, baignades à l'écart des foules, déjeuner à bord sur demande.</div>
+<div class="p-actions">
+<a class="p-action" href="tel:+33676223752"><svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.68 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.32 1.85.55 2.81.68A2 2 0 0 1 22 16.92z"></path></svg>06 76 22 37 52</a>
+<a class="p-action" href="https://www.privateboat83.fr/" rel="noopener" target="_blank"><svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><path d="M3 12h18M12 3a14 14 0 0 1 0 18 14 14 0 0 1 0-18z"></path></svg>Site web</a>
+<div class="p-action" onclick="openInMaps(43.1019597,6.1727583,'Private Boat 83, Hyères')"><svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><path d="M12 21s7-6.5 7-12a7 7 0 1 0-14 0c0 5.5 7 12 7 12z"></path><circle cx="12" cy="9" r="2.4"></circle></svg>Itinéraire</div>
+</div>
+</div>
+
+<div class="p-card glass-group" data-cat="exclusives" data-lat="42.9995622" data-lon="6.1711216" data-name="La Pinède, Mas du Langoustier">
+<div class="p-head">
+<div><div class="p-name">La Pinède — Mas du Langoustier</div><div class="p-tag">Expérience exclusive · Porquerolles</div></div>
+<div class="rating"><span class="stars" data-rating="4.8"><span class="stars-bg">★★★★★</span><span class="stars-fg">★★★★★</span></span><span class="rating-num">4.8</span></div>
+</div>
+<div class="p-desc">Une table sélectionnée par Gault&amp;Millau, au cœur d'un domaine provençal historique depuis 1912 — à environ vingt minutes de bateau depuis la Tour Fondue.</div>
+<div class="p-actions">
+<a class="p-action" href="tel:+33494583009"><svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.68 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.32 1.85.55 2.81.68A2 2 0 0 1 22 16.92z"></path></svg>04 94 58 30 09</a>
+<a class="p-action" href="https://www.langoustier.com" rel="noopener" target="_blank"><svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><path d="M3 12h18M12 3a14 14 0 0 1 0 18 14 14 0 0 1 0-18z"></path></svg>Site web</a>
+<div class="p-action" onclick="openInMaps(42.9995622,6.1711216,'Mas du Langoustier, Porquerolles')"><svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><path d="M12 21s7-6.5 7-12a7 7 0 1 0-14 0c0 5.5 7 12 7 12z"></path><circle cx="12" cy="9" r="2.4"></circle></svg>Itinéraire</div>
+</div>
+</div>
+
+<div class="p-card glass-group" data-cat="exclusives" data-name="Sortie en mer privée">
+<div class="p-head">
+<div><div class="p-name">Sortie en mer privée</div><div class="p-tag">Expérience exclusive · Sur demande</div></div>
+</div>
+<div class="p-desc">Une après-midi en mer organisée sur mesure par votre conciergerie — criques, îles et coucher de soleil au large.</div>
+<div class="p-actions">
+<div class="p-action" onclick="scrollToSection('sec-conciergerie')"><svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.68 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.32 1.85.55 2.81.68A2 2 0 0 1 22 16.92z"></path></svg>Contacter la conciergerie</div>
+</div>
+</div>
+
+<div class="rec-empty" id="recEmpty">Aucune adresse dans cette catégorie pour le moment.</div>
+</div>
+</div>
+</div>
+    </section>
+
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="../js/velnora-shared.js"></script>
+<script>
+  // ---- Navigation d'ancrage (remplace la navigation multi-pages) ----
+  function scrollToSection(id){
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.scrollIntoView({behavior:'smooth', block:'start'});
+  }
+
+  (function initScrollSpy(){
+    const pills = Array.from(document.querySelectorAll('.exp-pill'));
+    const sections = pills.map(p => document.getElementById(p.dataset.target)).filter(Boolean);
+    if (!sections.length) return;
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (!entry.isIntersecting) return;
+        const id = entry.target.id;
+        pills.forEach(p => p.classList.toggle('active', p.dataset.target === id));
+      });
+    }, { rootMargin: '-45% 0px -50% 0px', threshold: 0 });
+    sections.forEach(s => io.observe(s));
+  })();
+
+  
+  // Personnalisation en tout premier : l'écran reste masqué (voir
+  // style="visibility:hidden" sur les deux blocs ci-dessus) jusqu'à ce
+  // que le bon contenu soit déterminé, pour ne jamais afficher, même
+  // brièvement, un texte par défaut ou un prénom qui n'est pas le vôtre.
+  function getGreeting(){
+    const h = new Date().getHours();
+    if (h < 12) return 'Bonjour';
+    if (h < 18) return 'Bon après-midi';
+    return 'Bonsoir';
+  }
+
+  (function personalize(){
+    const msgEl = document.getElementById('phaseMessage');
+    const subEl = document.getElementById('phaseSubmessage');
+
+    let guest = null;
+    try{ guest = JSON.parse(localStorage.getItem('velnoraGuest') || 'null'); }catch(e){}
+
+    // Séjour terminé : on garde le même écran (aucun nouvel écran, aucune
+    // suppression d'accès) mais le message d'accueil laisse place à une
+    // formule de clôture, sobre et toujours élégante. La navigation reste
+    // entièrement fonctionnelle en dessous — une propriété peut très bien
+    // choisir de laisser le lien ouvert au-delà du séjour.
+    if (guest && guest.departure && typeof isStayEnded === 'function' && isStayEnded(guest.departure)){
+      const d = new Date(guest.departure + 'T00:00:00');
+      const formatted = !isNaN(d) ? new Intl.DateTimeFormat('fr-FR', { day:'numeric', month:'long' }).format(d) : null;
+      if (msgEl) msgEl.textContent = 'Votre séjour à la Villa Aurea s’est achevé.';
+      if (subEl) subEl.textContent = formatted
+        ? 'Cette expérience vous était réservée jusqu\'au ' + formatted + '.'
+        : 'Cette expérience était réservée à la durée de votre séjour.';
+    } else {
+      const name = (guest && guest.firstName ? guest.firstName.trim() : null);
+      if (msgEl) msgEl.textContent = name
+        ? getGreeting() + ', ' + name.charAt(0).toUpperCase() + name.slice(1) + '.'
+        : 'Bienvenue.';
+
+      if (subEl){
+        const d = guest && guest.departure ? new Date(guest.departure + 'T00:00:00') : null;
+        subEl.textContent = (d && !isNaN(d))
+          ? "La villa est à vous jusqu'au " + new Intl.DateTimeFormat('fr-FR', { day:'numeric', month:'long' }).format(d) + '.'
+          : 'La villa est à vous pour la durée de votre séjour.';
+      }
+    }
+
+    if (msgEl) msgEl.style.visibility = 'visible';
+    if (subEl) subEl.style.visibility = 'visible';
+  })();
+
+  
+  // Presqu'île de Giens, Hyères — coordonnées de la propriété pilote.
+  initWeather(43.0388, 6.1305);
+
+  // Sélection de Stéphane : étoiles de notation + onglets de filtre + carte Leaflet.
+  initStarRatings();
+  initRecommandations();
+
+  // Parallax discret : la photo suit le scroll dès le chargement (le
+  // bandeau logo/météo reste fixe en haut de l'écran, en position:fixed
+  // géré nativement par le navigateur — aussi fluide que le bouton Accueil).
+  (function heroParallax(){
+    const photo = document.querySelector('.hero-photo');
+    if (!photo) return;
+    let ticking = false;
+    function update(){
+      const y = window.scrollY || document.documentElement.scrollTop || 0;
+      photo.style.transform = `translate3d(0, ${y * 0.35}px, 0) scale(${1 + Math.min(y, 200) * 0.0007})`;
+      ticking = false;
+    }
+    update();
+    window.addEventListener('scroll', () => { if (!ticking){ ticking = true; requestAnimationFrame(update); } }, {passive:true});
+  })();
+
+
+  
+  
+  // Rappel discret des dates du séjour — uniquement si l'information a
+  // été recueillie à l'accueil concierge ; sinon l'écran reste inchangé.
+  (function personalizeStay(){
+    let guest = null;
+    try{ guest = JSON.parse(localStorage.getItem('velnoraGuest') || 'null'); }catch(e){}
+    if (!guest || !guest.arrival || !guest.departure) return;
+    const range = typeof formatStayRange === 'function' ? formatStayRange(guest.arrival, guest.departure) : null;
+    const el = document.getElementById('stayRange');
+    if (el && range) el.textContent = 'Votre séjour : ' + range + '.';
+  })();
+
+  
+
+
+  initAssistant();
+</script>
+
+</body>
+</html>
